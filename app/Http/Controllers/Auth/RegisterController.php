@@ -18,6 +18,14 @@ class RegisterController extends Controller
 
     public function store(Request $request) 
     {
+        // проверяем валидность данных полученных из формы регистрации
+        $request->validate([
+            'name' => 'required|max:255',
+            'email' => 'required|email|max:255|unique:users',
+            'password' => ['required', 'confirmed', 'min:6']
+        ]);
+
+
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,

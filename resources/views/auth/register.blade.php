@@ -7,6 +7,13 @@
 </head>
 <body>
 	<h1>Register Page</h1>
+
+	<ul>
+		@foreach($errors->all() as $message)
+			<li>{{ $message }}</li>
+		@endforeach 
+	</ul>
+
 	<form action="{{ route('register') }}" autocomplete="off" method="post" novalidate>
 	@csrf
 		<label for="name">Name:</label>

@@ -14,21 +14,19 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::get('/', function () {
-    return view('welcome');
-});
-
+Route::get('/', 'welcome');
 Route::view('/', 'welcome')->name('welcome');
-Route::view('/login', 'login')->name('login');
 
-Route::get('/register', [RegisterController::class, 'create'])
-    // если пользователь уже зарегистрирован, то перенаправляем на главную страницу
-    ->middleware('guest')
-    ->name('register');
-// Роут для передачи данных их формы регистрации для создания пользователя в базе
-Route::post('/register', [RegisterController::class, 'store'])
-    // если пользователь уже зарегистрирован, то перенаправляем на главную страницу
-    ->middleware('guest');
+// Группа только для гостей / не зарегистрированных пользователей
+Route::middleware(['guest'])->group(function () {
+    // Роут для отображения формы регистрации
+    Route::get('/register', [RegisterController::class, 'create'])->name('register');
+    // Роут для передачи данных из формы регистрации для создания пользователя в базе
+    Route::post('/register', [RegisterController::class, 'store']);
+
+    // Аутентификация пользователя / Вход
+    Route::view('/login', 'login')->name('login');
+});
 
 
 // В эти роуты будут доступны только зарегистрированные пользователи
