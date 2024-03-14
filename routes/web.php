@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Auth\RegisterController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -18,6 +19,17 @@ Route::get('/', function () {
 });
 
 Route::view('/', 'welcome')->name('welcome');
-Route::view('/dashboard', 'dashboard')->name('dashboard');
-Route::view('/registration', 'registration')->name('registration');
 Route::view('/login', 'login')->name('login');
+
+Route::get('/register', [RegisterController::class, 'create'])
+    // если пользователь уже зарегистрирован, то перенаправляем на главную страницу
+    ->middleware('guest')
+    ->name('register');
+// Роут для передачи данных их формы регистрации для создания пользователя в базе
+Route::post('/register', [RegisterController::class, 'store'])
+    // если пользователь уже зарегистрирован, то перенаправляем на главную страницу
+    ->middleware('guest');
+
+
+// В эти роуты будут доступны только зарегистрированные пользователи
+Route::view('/dashboard', 'dashboard')->middleware('auth')->name('dashboard');
