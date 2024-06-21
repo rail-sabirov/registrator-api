@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -24,6 +25,21 @@ Route::group([
     Route::post('/me', [AuthController::class, 'me'])->name('me');
     Route::post('/refresh', [AuthController::class, 'refresh'])->name('refresh');  
 });
+
+// Users
+Route::group([
+    //'middleware' => 'api',
+    'middleware' => 'jwt.auth',
+    'prefix' => 'users'
+
+], function ($router) {
+    Route::get('/', [UserController::class, 'index'])->name('users');
+    //Route::post('/', [AuthController::class, 'store'])->name('new');
+    //Route::get('/{id}', [AuthController::class, 'show'])->name('users');
+    //Route::put('/{id}', [AuthController::class, 'update'])->name('users');
+    //Route::delete('/{id}', [AuthController::class, 'destroy'])->name('users');  
+    }
+);
 
 
 // Если нет пути, то выводим ошибку
