@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('verification_codes', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('user_id');
-            $table->string('code');
+            $table->string('code')->length(8);
             $table->timestamps();
 
             $table->foreign('user_id') // связь изспользуя текущую переменную user_id

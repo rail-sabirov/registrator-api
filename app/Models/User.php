@@ -9,9 +9,17 @@ use Illuminate\Notifications\Notifiable;
 
 use PHPOpenSourceSaver\JWTAuth\Contracts\JWTSubject;
 
-class User extends Authenticatable implements JWTSubject
+use App\Models\VerificationCode;
+use Illuminate\Support\Facades\Mail as Mail;
+use App\Mail\VerificationEmail;
+
+use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Auth\MustVerifyEmail as MustVerifyEmailTrait;
+
+
+class User extends Authenticatable implements JWTSubject, MustVerifyEmail
 {
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, MustVerifyEmailTrait;
 
     /**
      * The attributes that are mass assignable.
@@ -66,9 +74,32 @@ class User extends Authenticatable implements JWTSubject
     {
         return [];
     }
+    
 
     public function getUsers()
     {
         return $this->all();
+    }
+
+    // Связываем класс User с таблицей VerificationCode, один к одному
+    public function verificationCode()
+    {
+        return $this->hasOne(VerificationCode::class);
+    }
+
+
+    /**
+     * Generate verification code and send email
+     */
+    public function generateVerificationCode()
+    {
+        $code = mt_rand(10000000, 99999999);
+        VerificationCode::create([
+            'user_id' => $this->id,
+            'code' => $code
+        ]);
+
+        Mail::to($this->email)
+            ->send(new VerificationEmail($code));
     }
 }

@@ -21,9 +21,11 @@ return Application::configure(basePath: dirname(__DIR__))
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
     )
+    
     ->withMiddleware(function (Middleware $middleware) {
-        //
+        //$middleware->append(\App\Http\Middleware\VerifyEmail::class);
     })
+    
     ->withExceptions(function (Exceptions $exceptions) {
         // Отлавливаем исключение при переходе на страницы /api/* без авторизации/передачи токена
         // вместо переброса на страницу автор, выводим ошибку, у нас же API

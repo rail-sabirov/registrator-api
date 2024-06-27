@@ -167,6 +167,8 @@ return [
 
         'JWTAuth' => PHPOpenSourceSaver\JWTAuth\Facades\JWTAuth::class,
         'JWTFactory' => PHPOpenSourceSaver\JWTAuth\Facades\JWTFactory::class,
+
+        'EmailVerification' => \App\Http\Middleware\VerifyEmail::class,
     ],
 
 ];
