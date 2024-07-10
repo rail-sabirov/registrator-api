@@ -11,6 +11,7 @@ class ApiController extends Controller
         return response()->json([
             'message' => 'Registrator API, 2024',
             'description' => 'Registrator API, Five Star`s Local Web Server.',
+            'current time' => date('Y-m-d H:i:s')
         ]);
     }
 }

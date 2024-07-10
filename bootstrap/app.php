@@ -23,7 +23,9 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     
     ->withMiddleware(function (Middleware $middleware) {
-        //$middleware->append(\App\Http\Middleware\VerifyEmail::class);
+        $middleware->append([
+            \App\Http\Middleware\EnsureTokenIsValid::class
+        ]);
     })
     
     ->withExceptions(function (Exceptions $exceptions) {

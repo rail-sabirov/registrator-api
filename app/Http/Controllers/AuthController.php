@@ -2,20 +2,29 @@
 
 namespace App\Http\Controllers;
 
+
 use Illuminate\Http\Request;
 use App\Models\User;
 use App\Models\VerificationCode;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Validator;
 
+use Illuminate\Routing\Controllers\HasMiddleware;
+use Illuminate\Routing\Controllers\Middleware;
+
 use PHPOpenSourceSaver\JWTAuth\Facades\JWTAuth;
-use PHPOpenSourceSaver\JWTAuth\Exceptions\TokenExpiredException;
-use PHPOpenSourceSaver\JWTAuth\Exceptions\TokenBlacklistedException;
-use PHPOpenSourceSaver\JWTAuth\Exceptions\TokenInvalidException;
+
 
 
 class AuthController extends Controller
 {
+    public static function middleware(): array 
+    {
+        return [
+            new Middleware(\App\Http\Middleware\EnsureTokenIsValid::class, except: ['login', 'register', 'emailVerify','refresh']),
+        ];
+    }
+
     // --- Регистрация
     /**
      * @param Request $request
@@ -27,6 +36,7 @@ class AuthController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:6|confirmed', // confirmed - подтверждение пароля
+            
         ]);
 
         // Вывод ошибок при валидации полей [поле => сообщение]
@@ -69,7 +79,13 @@ class AuthController extends Controller
             return response()->json(['error' => 'Unauthorized'], 401);
         }
 
+        $user = auth()->user();
 
+        if($user['email_verified_at'] == null) {
+            return response()->json([
+                'message' => 'Email not verified',
+            ], 403);
+        }
 
         return $this->respondWithToken('User successfully logged in', $token);
     }
@@ -79,28 +95,13 @@ class AuthController extends Controller
      */
     public function me()
     {
-        try {
-            $user = JWTAuth::parseToken()->authenticate();
-            $result = [
-                'name' => $user->name,
-                'email' => $user->email
-            ];
-            
-            return response()->json($result);
+        $user = JWTAuth::parseToken()->authenticate();
+        $result = [
+            'name' => $user->name,
+            'email' => $user->email
+        ];
         
-        } catch (TokenExpiredException $e) {
-            return response()->json([
-                'message' => 'token expired'
-            ], 401);
-        } catch (TokenInvalidException $e) {
-            return response()->json([
-                'message' => 'token invalid'
-            ], 401);    
-        } catch (TokenBlacklistedException $e) {
-            return response()->json([
-                'message' => 'token blacklisted'
-            ], 401);
-        }
+        return response()->json($result);
     }
 
     /**
@@ -119,9 +120,10 @@ class AuthController extends Controller
      * @param $token
      * @return \Illuminate\Http\JsonResponse
      */
-    public function refresh()
+    public function refresh(Request $request)
     {
         $token = JWTAuth::getToken();
+        $tkn = $request->header('Authorization');
         return $this->respondWithToken('Token successfully refreshed',JWTAuth::refresh($token));
     }
 
@@ -186,23 +188,15 @@ class AuthController extends Controller
      */
     protected function respondWithToken($message, $token)
     {
-        $expiresMinutes = JWTAuth::factory()->getTTL() * 60;
+        $expiresMinutes = JWTAuth::factory()->getTTL();
         $expiresAt = Carbon::now()->addMinutes($expiresMinutes)->toDateTimeString();
         
-        $user = auth()->user();
-        
-        if($user['email_verified_at'] == null) {
-            return response()->json([
-                'message' => 'Email not verified',
-            ], 403);
-        }
-
         return response()->json([
             'message' => $message,
             'token' => [
                 'access_token' => $token,
                 'token_type' => 'bearer',
-                'expires_min' => JWTAuth::factory()->getTTL() * 60,
+                'expires_min' => JWTAuth::factory()->getTTL(),
                 'expires_date' => $expiresAt
             ]
         ]);
